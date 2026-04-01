@@ -57,22 +57,27 @@ public class SecurityConfig {
     }
 
     // ✅ CORS configuration
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            CorsConfiguration config = new CorsConfiguration();
 
-            config.setAllowedOrigins(List.of("*")); // later replace with your Vercel URL
-            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            config.setAllowedHeaders(List.of("*"));
-            config.setAllowCredentials(false);
+        CorsConfiguration config = new CorsConfiguration();
 
-            return config;
-        };
-    }
+        // 🔥 Allow your frontend
+        config.setAllowedOrigins(List.of(
+                "https://portfolio-frontend-one-chi.vercel.app"
+        ));
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        // 🔥 VERY IMPORTANT
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
+                new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
     }
 }
