@@ -25,31 +25,29 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
+        // ✅ FIX: use getRequestURI instead of getServletPath
+        String path = request.getRequestURI();
 
-        // ✅ 1. ALWAYS allow these endpoints
-        if (path.equals("/api/auth/login") ||
-                path.startsWith("/api/projects") ||
-                path.startsWith("/api/auth")) {
-
+        // 🔥 Skip JWT for public endpoints
+        if (path.startsWith("/api/auth") || path.startsWith("/api/projects")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // ✅ 2. Get Authorization header
+        // ✅ Get Authorization header
         String authHeader = request.getHeader("Authorization");
 
-        // ✅ 3. If no token → just continue (don't block)
+        // ✅ If no token → continue (don't block)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            // ✅ 4. Extract token
+            // ✅ Extract token
             String token = authHeader.substring(7);
 
-            // ✅ 5. Validate token
+            // ✅ Validate token
             if (jwtService.isTokenValid(token)) {
                 String username = jwtService.extractUsername(token);
 
@@ -64,11 +62,11 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception e) {
-            // ❗ Important: don't crash request on bad token
+            // ❗ Don't break request on invalid token
             System.out.println("JWT Error: " + e.getMessage());
         }
 
-        // ✅ 6. Continue filter chain
+        // ✅ Continue filter chain
         filterChain.doFilter(request, response);
     }
 }
