@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class SecurityConfig {
 
                 // ✅ Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // 🔓 Allow preflight requests (VERY IMPORTANT)
+                        // 🔓 Allow preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 🔓 Public APIs
@@ -56,28 +57,32 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ CORS configuration
-
+    // ✅ CORS configuration (FIXED)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        // 🔥 Allow your frontend
+        // 🔥 VERY IMPORTANT: your Vercel frontend URL
         config.setAllowedOrigins(List.of(
                 "https://portfolio-frontend-one-chi.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+
+        // 🔥 REQUIRED for modern browsers
         config.setAllowCredentials(true);
 
-        // 🔥 VERY IMPORTANT
-        org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
-                new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
         return source;
+    }
+
+    // ✅ REQUIRED (this fixed your deployment crash)
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
