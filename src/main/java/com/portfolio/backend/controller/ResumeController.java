@@ -31,4 +31,9 @@ public class ResumeController {
         response.put("url", resumeUrl);
         return response;
     }
+
+    @GetMapping("/test")
+    public String test() {
+        return "Resume controller working";
+    }
 }
